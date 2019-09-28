@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Amazon Search
 // @namespace    https://www.amazon.com/
-// @version      1.2
+// @version      1.3
 // @description  Provides Amazon Search UI on product pages
 // @author       Ravikiran Janardhana
 // @match        https://www.amazon.com/*/dp/*
@@ -37,7 +37,7 @@ const search = (function($) {
     searchFormDom = $(searchFormHtml),
     productIdRegex = /https:\/\/www\.amazon\.com\/.*\/dp\/([^\/]+)\/.*/,
     searchPageBaseUrl = "https://www.amazon.com/product-reviews/",
-    searchPageParameters = "/ie=UTF8&reviewerType=all_reviews&pageNumber=1&filterByKeyword="
+    searchPageParameters = "/?ie=UTF8&reviewerType=all_reviews&pageNumber=1&filterByKeyword="
   ;
 
   // Private Variables (mutable)
