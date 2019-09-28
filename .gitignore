@@ -1,0 +1,9 @@
+# IntelliJ
+.idea/
+
+# nodeJS
+package-lock.json
+node_modules/
+build/
+
+
