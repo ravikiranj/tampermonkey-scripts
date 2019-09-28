@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Amazon Search
 // @namespace    https://www.amazon.com/
-// @version      1.0
+// @version      1.1
 // @description  Provides Amazon Search UI on product pages
 // @author       Ravikiran Janardhana
 // @match        https://www.amazon.com/*/dp/*
+// @updateURL    https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.js
 // @grant        none
 // ==/UserScript==
 
@@ -34,7 +35,8 @@ const search = (function($) {
     `,
     searchFormDom = $(searchFormHtml),
     productIdRegex = /https:\/\/www\.amazon\.com\/.*\/dp\/([^\/]+)\/.*/,
-    searchPageUrl = "https://www.amazon.com/product-reviews/B07QF4398J/?ie=UTF8&reviewerType=all_reviews&pageNumber=1&filterByKeyword="
+    searchPageBaseUrl = "https://www.amazon.com/product-reviews/",
+    searchPageParameters = "/ie=UTF8&reviewerType=all_reviews&pageNumber=1&filterByKeyword="
   ;
 
   // Private Variables (mutable)
@@ -59,6 +61,7 @@ const search = (function($) {
     e.stopPropagation();
     e.preventDefault();
     console.log("Redirecting to search page for query = ", query);
+    const searchPageUrl = searchPageBaseUrl + productId + searchPageParameters + query;
     window.open(searchPageUrl + query, "_blank");
   },
 
