@@ -5,8 +5,8 @@
 // @description  Provides Amazon Search UI on product pages
 // @author       Ravikiran Janardhana
 // @match        https://www.amazon.com/*/dp/*
-// @updateURL    https://gist.github.com/ravikiranj/2d9cc6cf3d4052ae4043fa2c1eb06a62/raw/amazon-search.js
-// @downloadURL  https://gist.github.com/ravikiranj/2d9cc6cf3d4052ae4043fa2c1eb06a62/raw/amazon-search.js
+// @updateURL    https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.js
+// @downloadURL  https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.js
 // @grant        none
 // ==/UserScript==
 
