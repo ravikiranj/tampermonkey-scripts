@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Amazon Search
 // @namespace    https://www.amazon.com/
-// @version      1.1
+// @version      1.2
 // @description  Provides Amazon Search UI on product pages
 // @author       Ravikiran Janardhana
 // @match        https://www.amazon.com/*/dp/*
@@ -63,7 +63,7 @@ const search = (function($) {
     e.preventDefault();
     console.log("Redirecting to search page for query = ", query);
     const searchPageUrl = searchPageBaseUrl + productId + searchPageParameters + query;
-    window.open(searchPageUrl + query, "_blank");
+    window.open(searchPageUrl, "_blank");
   },
 
   _initEventHandlers = function() {
