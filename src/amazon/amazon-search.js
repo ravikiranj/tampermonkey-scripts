@@ -6,6 +6,7 @@
 // @author       Ravikiran Janardhana
 // @match        https://www.amazon.com/*/dp/*
 // @updateURL    https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.js
+// @downloadURL  https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.js
 // @grant        none
 // ==/UserScript==
 
