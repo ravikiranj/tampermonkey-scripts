@@ -4,9 +4,10 @@
 // @version      1.3
 // @description  Provides Amazon Search UI on product pages
 // @author       Ravikiran Janardhana
-// @match        https://www.amazon.com/*/dp/*
+// @match        https://www.amazon.com/*
 // @updateURL    https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.js
 // @downloadURL  https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.js
+// @require      http://code.jquery.com/jquery-3.6.0.min.js
 // @grant        none
 // ==/UserScript==
 
@@ -35,7 +36,6 @@ const search = (function($) {
 <hr class="a-spacing-large a-divider-normal">
     `,
     searchFormDom = $(searchFormHtml),
-    productIdRegex = /https:\/\/www\.amazon\.com\/.*\/dp\/([^\/]+)\/.*/,
     searchPageBaseUrl = "https://www.amazon.com/product-reviews/",
     searchPageParameters = "/?ie=UTF8&reviewerType=all_reviews&pageNumber=1&filterByKeyword="
   ;
@@ -49,12 +49,7 @@ const search = (function($) {
 
   // Private functions
   const _getProductId = function() {
-    const url = window.location.href;
-    const matchResult = url.match(productIdRegex);
-    if (!matchResult) {
-      searchFormElem.hide();
-    }
-    return matchResult && matchResult[1] ? matchResult[1] : null;
+    return $("#ASIN").val();
   },
 
   _handleSearchEvent = function(e) {
