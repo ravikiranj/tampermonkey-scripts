@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Amazon Search
 // @namespace    https://www.amazon.com/
-// @version      1.3
+// @version      1.4
 // @description  Provides Amazon Search UI on product pages
 // @author       Ravikiran Janardhana
 // @match        https://www.amazon.com/*
