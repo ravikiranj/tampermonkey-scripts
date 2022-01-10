@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Audible Goodreads Ratings
 // @namespace    https://www.audible.com/
-// @version      1.0
+// @version      1.1
 // @description  Provides Goodreads ratings on audible website
 // @author       Ravikiran Janardhana
 // @match        https://www.audible.com/*
@@ -42,8 +42,8 @@ const ratings = (function($) {
     `;
       return html;
     },
-    _addGoodreadsRating = function(title, bookItemParent) {
-      const goodreadsUrl = `https://www.goodreads.com/search?q=${title}&search_type=books`;
+    _addGoodreadsRating = function(bookTitle, bookItemParent) {
+      const goodreadsUrl = `https://www.goodreads.com/search?q=${bookTitle}&search_type=books`;
       GM.xmlHttpRequest({
         method: "GET",
         url: goodreadsUrl,
@@ -58,23 +58,29 @@ const ratings = (function($) {
           const bookLink = html.find("tbody td a.bookTitle").first().attr("href");
           const bookRating = html.find("tbody td span.minirating").first().text();
           if (!bookLink || !bookRating) {
-            console.log(`Missing bookLink = ${bookLink}, bookRating = ${bookRating}!`);
+            console.log(`Missing bookLink = ${bookLink}, bookRating = ${bookRating} for bootTitle = ${bookTitle}!`);
             return;
           }
           bookItemParent.append(_getRatingsHtml(bookLink, bookRating));
         }
       });
     };
+
+  // Public functions
   return {
     init: function() {
       bookElems.each(function(index, elem) {
-        const bookElem = $(elem);
-        const bookTitle = bookElem.text().trim();
-        const bookItemParent = bookElem.parents("ul.bc-list").first();
-        if (!bookTitle || !bookItemParent) {
-          return;
+        try {
+          const bookElem = $(elem);
+          const bookTitle = bookElem.text().trim().split(":")[0];
+          const bookItemParent = bookElem.parents("ul.bc-list").first();
+          if (!bookTitle || bookItemParent.length === 0) {
+            return;
+          }
+          _addGoodreadsRating(bookTitle, bookItemParent);
+        } catch (e) {
+          console.log(`Caught exception = ${e} when processing elem = ${elem}`);
         }
-        _addGoodreadsRating(bookTitle, bookItemParent);
       });
     }
   };
