@@ -5,15 +5,15 @@
 // @description  Provides Amazon Search UI on product pages
 // @author       Ravikiran Janardhana
 // @match        https://www.amazon.com/*
-// @updateURL    https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.js
-// @downloadURL  https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.js
+// @updateURL    https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.user.js
+// @downloadURL  https://raw.githubusercontent.com/ravikiranj/tampermonkey-scripts/master/src/amazon/amazon-search.user.js
 // @require      http://code.jquery.com/jquery-3.6.0.min.js
 // @grant        none
 // ==/UserScript==
 
 /*
 Add below line to UserScript section to edit locally the file contents
-// @require      file://PATH-TO-REPO\tampermonkey-scripts\src\amazon\amazon-search.js
+// @require      file://PATH-TO-REPO\tampermonkey-scripts\src\amazon\amazon-search.user.js
 */
 
 const search = (function($) {
