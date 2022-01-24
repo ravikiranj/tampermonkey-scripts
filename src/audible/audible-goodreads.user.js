@@ -2,6 +2,7 @@
 // @name         Audible Goodreads Ratings
 // @namespace    https://www.audible.com/
 // @version      1.2
+// @version      1.1
 // @description  Provides Goodreads ratings on audible website
 // @author       Ravikiran Janardhana
 // @match        https://www.audible.com/*
@@ -147,6 +148,8 @@ const ratings = (function($) {
         }
       });
     };
+
+  // Public functions
   return {
     init: function() {
       bookElems.each(function(index, elem) {
