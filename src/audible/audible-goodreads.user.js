@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Audible Goodreads Ratings
 // @namespace    https://www.audible.com/
-// @version      1.0
+// @version      1.2
 // @description  Provides Goodreads ratings on audible website
 // @author       Ravikiran Janardhana
 // @match        https://www.audible.com/*
@@ -21,6 +21,8 @@ const ratings = (function($) {
 
   // Private Variables (immutable)
   const
+    isDebugLogEnabled = false,
+    isSearchByTitleAndAuthorEnabled = true,
     bookElemsDict = {
       "sales": "div.bc-container ul.bc-list li.bc-list-item h3.bc-heading a.bc-link",
       "book": "div.bc-container ul.bc-list li.bc-list-item h1.bc-heading",
@@ -28,8 +30,51 @@ const ratings = (function($) {
       "library": "#adbl-library-content-main ul.bc-list li.bc-list-item:first-child a.bc-link"
     },
     bookElemSelector =  $.map(bookElemsDict, function(value, key) { return value; }).join(","),
-    bookElems = $(bookElemSelector);
+    bookElems = $(bookElemSelector),
+    bookTitleSimilarityThreshold = 0.7,
+    bookAuthorSimilarityThreshold = 0.5;
   const
+    _logDebug = function(str) {
+      if (isDebugLogEnabled) {
+        console.log(str);
+      }
+    },
+    // Ported from https://github.com/aceakash/string-similarity
+    _getStringSimilarity = function(first, second) {
+      // Patch string case - custom code
+      first = first.replace(/\s+/g, '').toLowerCase();
+      second = second.replace(/\s+/g, '').toLowerCase();
+
+      // identical or empty
+      if (first === second) {
+        return 1;
+      }
+
+      // if either is a 0-letter or 1-letter string
+      if (first.length < 2 || second.length < 2) {
+        return 0;
+      }
+
+      let firstBigrams = new Map();
+      for (let i = 0; i < first.length - 1; i++) {
+        const bigram = first.substring(i, i + 2);
+        const count = firstBigrams.has(bigram) ? firstBigrams.get(bigram) + 1 : 1;
+        firstBigrams.set(bigram, count);
+      }
+
+      let intersectionSize = 0;
+      for (let i = 0; i < second.length - 1; i++) {
+        const bigram = second.substring(i, i + 2);
+        const count = firstBigrams.has(bigram) ? firstBigrams.get(bigram) : 0;
+
+        if (count > 0) {
+          firstBigrams.set(bigram, count - 1);
+          intersectionSize++;
+        }
+      }
+
+      return (2.0 * intersectionSize) / (first.length + second.length - 2);
+    },
     _getRatingsHtml = function(bookLink, bookRating) {
       const patchedBookLink = bookLink.startsWith("http") ? bookLink : `https://www.goodreads.com${bookLink}`;
       const html =
@@ -43,22 +88,59 @@ const ratings = (function($) {
       return html;
     },
     _addGoodreadsRating = function(title, bookItemParent) {
-      const goodreadsUrl = `https://www.goodreads.com/search?q=${title}&search_type=books`;
+      const author = bookItemParent.find("li.authorLabel a.bc-link").first().text().trim();
+      const searchQuery = isSearchByTitleAndAuthorEnabled && author ? `${title} by ${author}` : title;
+      const goodreadsUrl = `https://www.goodreads.com/search?q=${searchQuery}&search_type=books`;
       GM.xmlHttpRequest({
         method: "GET",
         url: goodreadsUrl,
         onload: function(response) {
-          if (!response || response.status != 200 || !response.responseText) {
+          if (!response || response.status !== 200 || !response.responseText) {
             const status = response && response.status ? response.status : "UNKNOWN";
             console.log(`HTTP Response Status = ${status} for url = ${goodreadsUrl}`);
             return;
           }
           const parsedHtml = (new DOMParser()).parseFromString(response.responseText, "text/html");
           const html = $(parsedHtml);
-          const bookLink = html.find("tbody td a.bookTitle").first().attr("href");
-          const bookRating = html.find("tbody td span.minirating").first().text();
+          const results = html.find("table.tableList tr");
+          let bookLink = "";
+          let bookRating = "";
+          results.each(function(index, elem) {
+            const result = $(elem);
+            const resultBookLinkContainer = result.find("a.bookTitle").first();
+            const resultBookTitle = resultBookLinkContainer.text().trim().split(":")[0];
+            const resultBookLink = resultBookLinkContainer.attr("href");
+            const resultBookAuthor = result.find("a.authorName span").first().text().trim();
+            const resultBookRating = result.find("span.minirating").first().text().trim();
+
+            // Missing mandatory fields, skip
+            if (!resultBookTitle || !resultBookLink || !resultBookAuthor || !resultBookRating) {
+              return;
+            }
+
+            // Verify book title similarity score
+            const bookTitleSimilarity = _getStringSimilarity(title, resultBookTitle);
+            _logDebug(`title = ${title}, resultBookTitle = ${resultBookTitle}, bookTitleSimilarity = ${bookTitleSimilarity}, threshold = ${bookTitleSimilarityThreshold}`);
+            if (bookTitleSimilarity < bookTitleSimilarityThreshold) {
+              return;
+            }
+
+            // Verify author similarity score if present
+            if (author) {
+              const bookAuthorSimilarity = _getStringSimilarity(author, resultBookAuthor);
+              _logDebug(`author = ${author}, resultBookAuthor = ${resultBookAuthor}, bookAuthorSimilarity = ${bookAuthorSimilarity}, threshold = ${bookAuthorSimilarityThreshold}`);
+              if (bookAuthorSimilarity < bookAuthorSimilarityThreshold) {
+                return;
+              }
+            }
+
+            // We found a valid search result, return false to exit ".each"
+            _logDebug(`Found valid search result for title = ${title}, author = ${author}`);
+            bookLink = resultBookLink;
+            bookRating = resultBookRating;
+          });
           if (!bookLink || !bookRating) {
-            console.log(`Missing bookLink = ${bookLink}, bookRating = ${bookRating}!`);
+            console.log(`Could not find valid search result for title = ${title}, author = ${author}`);
             return;
           }
           bookItemParent.append(_getRatingsHtml(bookLink, bookRating));
@@ -68,13 +150,17 @@ const ratings = (function($) {
   return {
     init: function() {
       bookElems.each(function(index, elem) {
-        const bookElem = $(elem);
-        const bookTitle = bookElem.text().trim();
-        const bookItemParent = bookElem.parents("ul.bc-list").first();
-        if (!bookTitle || !bookItemParent) {
-          return;
+        try {
+          const bookElem = $(elem);
+          const bookTitle = bookElem.text().trim().split(":")[0];
+          const bookItemParent = bookElem.parents("ul.bc-list").first();
+          if (!bookTitle || bookItemParent.length === 0) {
+            return;
+          }
+          _addGoodreadsRating(bookTitle, bookItemParent);
+        } catch (e) {
+          console.log(`Caught exception = ${e} when processing elem = ${elem}`);
         }
-        _addGoodreadsRating(bookTitle, bookItemParent);
       });
     }
   };
