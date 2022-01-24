@@ -22,7 +22,6 @@ const ratings = (function($) {
   // Private Variables (immutable)
   const
     isDebugLogEnabled = false,
-    isSearchByTitleAndAuthorEnabled = true,
     bookElemsDict = {
       "sales": "div.bc-container ul.bc-list li.bc-list-item h3.bc-heading a.bc-link",
       "book": "div.bc-container ul.bc-list li.bc-list-item h1.bc-heading",
@@ -32,7 +31,7 @@ const ratings = (function($) {
     bookElemSelector =  $.map(bookElemsDict, function(value, key) { return value; }).join(","),
     bookElems = $(bookElemSelector),
     bookTitleSimilarityThreshold = 0.7,
-    bookAuthorSimilarityThreshold = 0.5;
+    bookAuthorSimilarityThreshold = 0.7;
   const
     _logDebug = function(str) {
       if (isDebugLogEnabled) {
@@ -89,7 +88,7 @@ const ratings = (function($) {
     },
     _addGoodreadsRating = function(title, bookItemParent) {
       const author = bookItemParent.find("li.authorLabel a.bc-link").first().text().trim();
-      const searchQuery = isSearchByTitleAndAuthorEnabled && author ? `${title} by ${author}` : title;
+      const searchQuery = title;
       const goodreadsUrl = `https://www.goodreads.com/search?q=${searchQuery}&search_type=books`;
       GM.xmlHttpRequest({
         method: "GET",
@@ -108,7 +107,10 @@ const ratings = (function($) {
           results.each(function(index, elem) {
             const result = $(elem);
             const resultBookLinkContainer = result.find("a.bookTitle").first();
-            const resultBookTitle = resultBookLinkContainer.text().trim().split(":")[0];
+            const resultBookTitle = resultBookLinkContainer.text().trim()
+              // Add multiple splits for goodreads
+              .split(":")[0]
+              .split("(")[0];
             const resultBookLink = resultBookLinkContainer.attr("href");
             const resultBookAuthor = result.find("a.authorName span").first().text().trim();
             const resultBookRating = result.find("span.minirating").first().text().trim();
@@ -118,17 +120,18 @@ const ratings = (function($) {
               return;
             }
 
-            // Verify book title similarity score
+            // Compute book title similarity score and skip if below threshold
             const bookTitleSimilarity = _getStringSimilarity(title, resultBookTitle);
             _logDebug(`title = ${title}, resultBookTitle = ${resultBookTitle}, bookTitleSimilarity = ${bookTitleSimilarity}, threshold = ${bookTitleSimilarityThreshold}`);
             if (bookTitleSimilarity < bookTitleSimilarityThreshold) {
               return;
             }
 
-            // Verify author similarity score if present
+            // Compute author similarity score if present and skip if below threshold
+            let bookAuthorSimilarity = 0.0;
             if (author) {
-              const bookAuthorSimilarity = _getStringSimilarity(author, resultBookAuthor);
-              _logDebug(`author = ${author}, resultBookAuthor = ${resultBookAuthor}, bookAuthorSimilarity = ${bookAuthorSimilarity}, threshold = ${bookAuthorSimilarityThreshold}`);
+              bookAuthorSimilarity = _getStringSimilarity(author, resultBookAuthor);
+              _logDebug(`title = ${title}, author = ${author}, resultBookAuthor = ${resultBookAuthor}, bookAuthorSimilarity = ${bookAuthorSimilarity}, threshold = ${bookAuthorSimilarityThreshold}`);
               if (bookAuthorSimilarity < bookAuthorSimilarityThreshold) {
                 return;
               }
@@ -138,7 +141,9 @@ const ratings = (function($) {
             _logDebug(`Found valid search result for title = ${title}, author = ${author}`);
             bookLink = resultBookLink;
             bookRating = resultBookRating;
+            return false;
           });
+
           if (!bookLink || !bookRating) {
             console.log(`Could not find valid search result for title = ${title}, author = ${author}`);
             return;
