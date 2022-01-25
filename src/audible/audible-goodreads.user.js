@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Audible Goodreads Ratings
 // @namespace    https://www.audible.com/
-// @version      1.2
+// @version      1.3
 // @description  Provides Goodreads ratings on audible website
 // @author       Ravikiran Janardhana
 // @match        https://www.audible.com/*
@@ -87,7 +87,14 @@ const ratings = (function($) {
       return html;
     },
     _addGoodreadsRating = function(title, bookItemParent) {
-      const author = bookItemParent.find("li.authorLabel a.bc-link").first().text().trim();
+      let author = bookItemParent.find("li.authorLabel a.bc-link").first().text().trim();
+      // If we are in wishlist page, try extracting author via wishlist DOM structure
+      if (!author && window.location.pathname.startsWith("/wl")) {
+        author = bookItemParent
+          .parents("tr.bc-table-row").first()
+          .find("td[aria-label='Author']").first()
+          .find("a.bc-link").first().text();
+      }
       const searchQuery = title;
       const goodreadsUrl = `https://www.goodreads.com/search?q=${searchQuery}&search_type=books`;
       GM.xmlHttpRequest({
