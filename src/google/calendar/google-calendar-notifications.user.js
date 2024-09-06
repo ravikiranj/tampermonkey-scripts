@@ -45,12 +45,15 @@ const calendar = (function($) {
         notificationElems.each(function() {
             const notificationElem = $(this);
             // Fix Notification Type
-            notificationElem.find("div:first-child div[aria-haspopup='listbox']").first().click();
+            notificationElem.find("div:nth-child(1) div[aria-haspopup='listbox']").first().click();
+            // Fix Notification Duration Unit
+            notificationElem.find("div:nth-child(3) div[aria-haspopup='listbox']").first().click();
             if (notificationIndex <= 2) {
                 const notificationDurationInMins = notificationIndex == 1 ? 30 : 60;
                 // Notification
                 setTimeout(function(index) {
                     notificationElem.find("ul[aria-label='Notification method']").children("li").eq(1).click();
+                    notificationElem.find("ul[aria-label='Unit of time selection']").children("li").eq(0).click();
                     notificationElem.find("div:nth-child(2) input[type=number]").val(notificationDurationInMins);
                 }, 100 * notificationIndex, notificationIndex);
             } else {
@@ -58,6 +61,7 @@ const calendar = (function($) {
                 // Email
                 setTimeout(function(index) {
                     notificationElem.find("ul[aria-label='Notification method']").children("li").eq(0).click();
+                    notificationElem.find("ul[aria-label='Unit of time selection']").children("li").eq(0).click();
                     notificationElem.find("div:nth-child(2) input[type=number]").val(notificationDurationInMins);
                 }, 100 * notificationIndex, notificationIndex);
             }
