@@ -54,7 +54,7 @@ const ratings = (function($) {
         return 0;
       }
 
-      let firstBigrams = new Map();
+      const firstBigrams = new Map();
       for (let i = 0; i < first.length - 1; i++) {
         const bigram = first.substring(i, i + 2);
         const count = firstBigrams.has(bigram) ? firstBigrams.get(bigram) + 1 : 1;

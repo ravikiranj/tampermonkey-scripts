@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "See README.md",
   "license": "BSD-2-Clause",
+  "scripts": {
+    "lint": "eslint '**/*.js'",
+    "lint-fix": "eslint '**/*.js' --fix"
+  },
   "devDependencies": {
-    "grunt": "^1.0.4",
-    "grunt-contrib-jshint": "~2.1.0"
+    "eslint": "^8.35.0"
   }
 }

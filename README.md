@@ -2,9 +2,15 @@
 ## Scripts
 Tampermonkey scripts are located in `src` folder
 
-## grunt
+## Linting
 
 ```bash
-# jshint all the files
-grunt jshint
+# Install dependencies
+npm install
+
+# eslint all files
+npm run lint
+
+# automatically fix linting issues
+npm run lint-fix
 ```
